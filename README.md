@@ -1,12 +1,12 @@
 # SimpleBootLoader
-> ÕâÊÇÒ»¸öÓÃÓÚÑéÖ¤µÄBootLoader¹¤³Ì£¬ÓÉÓÚÆ¬ÄÚFlash´óĞ¡ÏŞÖÆ£¬Ô¤ÆÚ½öÊµÏÖIAP»ù´¡¹¦ÄÜ£¬²»×ö±¸·İ»Ö¸´·ÖÇøµÈ
-## Ä¿Â¼½á¹¹
-- Application Ó¦ÓÃ¹¤³Ì
-- BootLoader bootloader¹¤³Ì
-## Flash ·ÖÇøÉèÖÃ
-| ·ÖÇø | µØÖ··¶Î§ | ´óĞ¡ | Ò³ºÅ | ×÷ÓÃ |
+> è¿™æ˜¯ä¸€ä¸ªç”¨äºéªŒè¯çš„BootLoaderå·¥ç¨‹ï¼Œç”±äºç‰‡å†…Flashå¤§å°é™åˆ¶ï¼Œé¢„æœŸä»…å®ç°IAPåŸºç¡€åŠŸèƒ½ï¼Œä¸åšå¤‡ä»½æ¢å¤åˆ†åŒºç­‰
+## ç›®å½•ç»“æ„
+- Application åº”ç”¨å·¥ç¨‹
+- BootLoader bootloaderå·¥ç¨‹
+## Flash åˆ†åŒºè®¾ç½®
+| åˆ†åŒº | åœ°å€èŒƒå›´ | å¤§å° | é¡µå· | ä½œç”¨ |
 |---|---|---:|---:|---|
-| BootLoader | `0x08000000 ~ 0x08005FFF` | 24KB | Page0 ~ Page11 | BootLoader³ÌĞò |
-| Application | `0x08006000 ~ 0x0801DFFF` | 96KB | Page12 ~ Page59 | ApplicationÔËĞĞÇø |
-| Data | `0x0801E000 ~ 0x0801EFFF` | 4KB | Page60 ~ Page61 | Çı¶¯Ğ£×¼Êı¾İµÈ |
-| BootInfo | `0x0801F000 ~ 0x0801FFFF` | 4KB | Page62 ~ Page63 | ¹Ì¼şÔªÊı¾İºÍÉı¼¶×´Ì¬ |
+| BootLoader | `0x08000000 ~ 0x08005FFF` | 24KB | Page0 ~ Page11 | BootLoaderç¨‹åº |
+| Application | `0x08006000 ~ 0x0801DFFF` | 96KB | Page12 ~ Page59 | Applicationè¿è¡ŒåŒº |
+| Data | `0x0801E000 ~ 0x0801EFFF` | 4KB | Page60 ~ Page61 | é©±åŠ¨æ ¡å‡†æ•°æ®ç­‰ |
+| BootInfo | `0x0801F000 ~ 0x0801FFFF` | 4KB | Page62 ~ Page63 | å›ºä»¶å…ƒæ•°æ®å’Œå‡çº§çŠ¶æ€ |
