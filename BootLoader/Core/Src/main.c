@@ -23,7 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "BootLoader.h"
+#include "Bsp_Uart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -89,7 +90,52 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+const char banner[] =
+  "\r\n"
+  "========================================\r\n"
+  "  STM32G431 Simple BootLoader\r\n"
+  "  APP: 0x08006000, USART1: 115200 8N1\r\n"
+  "========================================\r\n";
 
+  HAL_UART_Transmit(&huart1,
+                  (uint8_t *)banner,
+                  sizeof(banner) - 1U,
+                  HAL_MAX_DELAY);
+
+  if (BL_BootInfoIsUpdating() || !BL_IsApplicationBootable()) {
+    const char wait_message[] =
+        "Application unavailable, enter IAP\r\n";
+
+    HAL_UART_Transmit(&huart1,
+                      (uint8_t *)wait_message,
+                      sizeof(wait_message) - 1U,
+                      HAL_MAX_DELAY);
+    Uart_Run();
+  }else {
+    const char trigger_message[] =
+        "Send 'U' within 5000ms to enter IAP\r\n";
+
+    HAL_UART_Transmit(&huart1,
+                      (uint8_t *)trigger_message,
+                      sizeof(trigger_message) - 1U,
+                      HAL_MAX_DELAY);
+  }
+
+  if (Uart_WaitForTrigger(5000U)) {
+    Uart_Run();
+  }else{
+    const char jump_message[] = "Jump to Application\r\n";
+
+    HAL_UART_Transmit(&huart1,
+                      (uint8_t *)jump_message,
+                      sizeof(jump_message) - 1U,
+                      HAL_MAX_DELAY);
+  }
+
+  HAL_Delay(20U);
+  BL_JumpToApplication();
+
+  Uart_Run();
   /* USER CODE END 2 */
 
   /* Infinite loop */

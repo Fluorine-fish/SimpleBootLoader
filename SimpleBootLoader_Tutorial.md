@@ -426,6 +426,166 @@ Application向量表的前两个32位数据分别是：
 0x08006004：Application Reset_Handler地址
 ```
 
+#### 知识补充：Cortex-M函数地址与Thumb状态
+
+在理解Reset_Handler有效性检查之前，需要先区分三个概念：
+
+1. **实际代码地址**：函数机器指令在Flash中的真实存放位置
+2. **函数指针值**：C代码执行间接调用时使用的值
+3. **Thumb指令**：Cortex-M处理器实际执行的机器指令编码
+
+这三个概念有关联，但不是同一个东西。
+
+##### 实际代码地址
+
+函数经过编译后会成为一段机器指令，并存放在Flash中。例如，Application的`Reset_Handler`第一条指令可能位于：
+
+```text
+0x080061A4
+```
+
+这个值是实际代码地址。Cortex-M4使用的Thumb指令至少按2字节对齐，所以有效指令地址的最低位为0。
+
+```text
+Flash地址      内容
+0x080061A4    Reset_Handler第一条Thumb指令
+0x080061A6    后续Thumb指令
+0x080061A8    后续Thumb指令
+```
+
+##### Thumb指令和Thumb状态
+
+ARM体系结构曾同时包含传统ARM指令状态和Thumb指令状态。STM32G431使用的Cortex-M4只支持Thumb/Thumb-2指令集：
+
+- 一部分指令使用16位编码
+- 一部分指令使用32位编码
+- 不支持传统ARM/A32执行状态
+- 跳转目标必须表示“进入Thumb状态”
+
+“Thumb指令”是CPU从Flash中取出并执行的机器指令；而函数指针最低位中的“Thumb位”只是一个状态标志，并不是指令内容，也不属于实际Flash地址。
+
+##### 函数指针为什么是奇数
+
+假设`Reset_Handler`的实际代码地址是：
+
+```text
+0x080061A4
+```
+
+向量表中保存的Reset_Handler函数指针值通常是：
+
+```text
+0x080061A5
+```
+
+最低位的`1`不参与Flash寻址，它表示间接跳转后使用Thumb状态。可以简化理解为：
+
+```c
+function_pointer = actual_code_address | 1U;
+```
+
+二者对比如下：
+
+| 内容 | 示例值 | 最低位含义 | 主要用途 |
+|---|---:|---|---|
+| 实际代码地址 | `0x080061A4` | 地址最低位，因对齐而为0 | 地址范围检查、查看反汇编 |
+| 函数指针值 | `0x080061A5` | Thumb状态标志，必须为1 | 间接调用或跳转 |
+| Thumb指令 | Flash中的16位或32位数据 | 不适用 | CPU实际执行的机器指令 |
+
+Cortex-M执行间接跳转时，可以简化成下面的过程：
+
+```text
+跳转目标值 = 0x080061A5
+Thumb状态  = 跳转目标值最低位 = 1
+实际PC     = 跳转目标值 & ~1 = 0x080061A4
+```
+
+CPU最终从`0x080061A4`读取指令，并不是从奇数地址`0x080061A5`读取指令。如果间接跳转目标最低位为0，Cortex-M会认为目标执行状态无效，通常产生`INVSTATE UsageFault`，并可能进一步升级为HardFault。
+
+##### 为什么检查地址时要清除最低位
+
+从Application向量表读取的`app_reset`已经是函数指针值，包含Thumb标志：
+
+```c
+uint32_t app_reset =
+    *(__IO uint32_t *)(APP_START_ADDR + 4U);
+```
+
+首先检查最低位是否为1：
+
+```c
+if ((app_reset & 1U) == 0U)
+{
+    return false;
+}
+```
+
+`app_reset & 1U`只保留最低位。如果结果为0，说明这个值不能作为有效的Cortex-M函数入口进行间接调用。
+
+进行Application分区范围检查时，需要去掉Thumb标志，得到真实代码地址：
+
+```c
+uint32_t reset_address = app_reset & ~1U;
+```
+
+例如：
+
+```text
+app_reset     = 0x080061A5  函数指针值
+~1U           = 0xFFFFFFFE
+reset_address = 0x080061A4  实际代码地址
+```
+
+因此两个变量的用途不同：
+
+```c
+app_reset      /* 保留Thumb位，用于函数指针调用 */
+reset_address  /* 清除Thumb位，用于地址范围检查 */
+```
+
+##### 哪个值可以作为函数指针执行
+
+下面的类型定义表示：`ApplicationEntry_t`是一个“不接收参数，也不返回数据”的函数指针类型。
+
+```c
+typedef void (*ApplicationEntry_t)(void);
+```
+
+真正调用时，应把保留Thumb位的`app_reset`转换为函数指针：
+
+```c
+ApplicationEntry_t app_entry =
+    (ApplicationEntry_t)(uintptr_t)app_reset;
+
+app_entry();
+```
+
+不要使用清除最低位后的`reset_address`进行调用：
+
+```c
+/* 错误示例：reset_address最低位为0。 */
+ApplicationEntry_t app_entry =
+    (ApplicationEntry_t)(uintptr_t)reset_address;
+
+app_entry();
+```
+
+普通C函数调用不需要手动设置Thumb位：
+
+```c
+void TestFunction(void)
+{
+}
+
+ApplicationEntry_t entry = TestFunction;
+entry();
+```
+
+编译器和ARM ABI会自动生成正确的函数指针表示。只有BootLoader从向量表或固定地址手动读取一个整数时，才需要主动检查Thumb位并区分“函数指针值”和“实际代码地址”。
+
+!!! note "本节结论"
+    `app_reset`是从向量表读取的可调用函数指针值，最低位必须为1；`reset_address = app_reset & ~1U`是去掉Thumb标志后的实际代码地址，只用于范围检查。真正跳转时必须使用原始`app_reset`。
+
 有效性检查至少应验证：
 
 1. MSP位于主SRAM范围内
@@ -553,7 +713,7 @@ void BootLoader_JumpToApplication(void)
 
     app_stack = *(__IO uint32_t *)APP_START_ADDR;
     app_reset = *(__IO uint32_t *)(APP_START_ADDR + 4U);
-    app_entry = (ApplicationEntry_t)app_reset;
+    app_entry = (ApplicationEntry_t)(uintptr_t)app_reset;
 
     __disable_irq();
 

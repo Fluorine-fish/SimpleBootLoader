@@ -57,7 +57,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     ./BootLoader
-    ./Bsp
+    ./Bsp/Uart
+    ./Bsp/Flash
 )
 
 # Add project symbols (macros)
