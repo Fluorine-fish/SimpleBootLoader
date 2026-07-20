@@ -100,6 +100,9 @@ void BL_JumpToApplication() {
     SysTick->LOAD = 0U;
     SysTick->VAL = 0U;
 
+    SCB->ICSR = SCB_ICSR_PENDSTCLR_Msk |
+            SCB_ICSR_PENDSVCLR_Msk;
+
     for (uint32_t index = 0U; index < 8U; index++) {
         NVIC->ICER[index] = 0xFFFFFFFFU;
         NVIC->ICPR[index] = 0xFFFFFFFFU;
@@ -109,10 +112,14 @@ void BL_JumpToApplication() {
     HAL_DeInit();
 
     SCB->VTOR = APP_START_ADDR;
+
+    __set_BASEPRI(0U);
+    __set_FAULTMASK(0U);
+    __set_CONTROL(0U);
+
     __DSB();
     __ISB();
 
-    __set_CONTROL(0U);
     __set_MSP(app_stack);
     __DSB();
     __ISB();
