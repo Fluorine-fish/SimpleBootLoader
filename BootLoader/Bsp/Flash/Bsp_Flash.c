@@ -33,14 +33,17 @@ static HAL_StatusTypeDef Flash_ErasePage(uint32_t first_page, uint32_t page_coun
 static HAL_StatusTypeDef Flash_Program(uint32_t addr, const uint8_t *data,
     uint32_t length, uint32_t region_start, uint32_t region_end) {
     HAL_StatusTypeDef status;
+    uint32_t write_end;
 
     if ((data == NULL) ||
         (length == 0) ||
         ((addr  & 0x7U) != 0) ||
         ((length & 0x7U) != 0) ||
         (addr < region_start) ||
-        (addr > region_end) ||
         (length > (region_end - region_start))) return HAL_ERROR;
+
+    write_end = addr + length;
+    if ((write_end < addr) || (write_end > region_end)) return HAL_ERROR;
 
     status = HAL_FLASH_Unlock();
     if (status != HAL_OK) return status;

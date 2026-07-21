@@ -96,6 +96,14 @@ void BL_JumpToApplication() {
 
     HAL_UART_DeInit(&huart1);
 
+    HAL_RCC_DeInit();
+    HAL_DeInit();
+
+    /*
+     * HAL_RCC_DeInit() reconfigures the HAL tick and may enable SysTick again.
+     * Stop it after all HAL deinitialization so the app's FreeRTOS SysTick
+     * handler cannot run before vTaskStartScheduler().
+     */
     SysTick->CTRL = 0U;
     SysTick->LOAD = 0U;
     SysTick->VAL = 0U;
@@ -107,9 +115,6 @@ void BL_JumpToApplication() {
         NVIC->ICER[index] = 0xFFFFFFFFU;
         NVIC->ICPR[index] = 0xFFFFFFFFU;
     }
-
-    HAL_RCC_DeInit();
-    HAL_DeInit();
 
     SCB->VTOR = APP_START_ADDR;
 
