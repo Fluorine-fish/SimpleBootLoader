@@ -8,7 +8,9 @@
 */
 #include "Bsp_Init.h"
 #include "Timer_It.h"
+#include "Timer_Pwm.h"
 
 void Bsp_Init() {
     Timer_ItInit();
+    Timer_PwmInit();
 }
