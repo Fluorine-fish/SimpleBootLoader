@@ -13,5 +13,6 @@
 
 void Timer_PwmInit();
 void Timer_PwmSetDuty(Alg_3Sys_s* duty);
+void Timer_PwmDisableOutput();
 
 #endif //APPLICATION_TIMER_PWM_H

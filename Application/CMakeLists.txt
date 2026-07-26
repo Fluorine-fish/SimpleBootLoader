@@ -67,10 +67,14 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
         ./App
         ./Bsp
+        ./Bsp/Adc
         ./Bsp/Encoder
         ./Bsp/Timer
         ./FDriverCore
+        ./FDriverCore/Sampling
+        ./FDriverCore/Runtime
         ./FDriverCore/Controller/Ifcontrol
+        ./FDriverCore/Controller/Vfcontrol
         ./FDriverCore/Algorithm
 )
 

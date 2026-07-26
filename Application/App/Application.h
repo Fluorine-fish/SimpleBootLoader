@@ -9,6 +9,7 @@
 #ifndef APPLICATION_APPLICATION_H
 #define APPLICATION_APPLICATION_H
 
+void App_Init();
 void App_TimerIt();
 
 #endif //APPLICATION_APPLICATION_H

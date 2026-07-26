@@ -12,6 +12,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-bool Encoder_GetRaw(uint32_t *raw_angle);
+bool Encoder_GetRaw(uint16_t *raw_angle);
 
 #endif //APPLICATION_ENCODER_MT6701_H

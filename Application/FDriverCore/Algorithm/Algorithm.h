@@ -16,6 +16,11 @@
 #define sqrt3 (1.7320508076f)
 
 typedef struct {
+    float module;
+    float arg;
+}Alg_vector_s;
+
+typedef struct {
     float a;
     float b;
 }Alg_2Sys_s;

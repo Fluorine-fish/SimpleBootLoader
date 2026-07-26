@@ -4,7 +4,7 @@
 *   @author Wenxin HU
 *   @date 2026/7/19
 *   @version 1.0
-*   @note
+ *   @note
 */
 #include "Encoder_Mt6701.h"
 #include "gpio.h"
@@ -41,7 +41,7 @@ static uint8_t Encoder_Mt6701_Crc (uint32_t w_InputData)
     return u8CRC;
 }
 
-bool Encoder_GetRaw(uint32_t *raw_angle) {
+bool Encoder_GetRaw(uint16_t *raw_angle) {
     uint8_t rx_buf[3] = {};
     uint16_t angle = 0, crc = 0, status = 0;
     uint32_t crc_data = 0; // 18bit data for crc-6
@@ -58,7 +58,7 @@ bool Encoder_GetRaw(uint32_t *raw_angle) {
     crc_data = ((rx_buf[0] << 16) | (rx_buf[1] << 8) | rx_buf[2]) >> 6;
 
     if (Encoder_Mt6701_Crc(crc_data) != crc) return false;
-    else *raw_angle = angle;
+    else *raw_angle = angle << (16 - 14); // 14位转换到16位
 
     return true;
 }

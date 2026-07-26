@@ -8,6 +8,7 @@
 */
 #include "Alg_Svpwm.h"
 #include "Algorithm.h"
+#include "Alg_math.h"
 
 /**
  * @brief 带扇区判断的SVPWM
@@ -133,4 +134,29 @@ void Alg_SvpwmWithSector(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys
             duty->c = 1.f - 2.f * switchTim->c;
             return;
     }
+}
+
+void Alg_SvpwmZeroInject(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys_s* duty) {
+    Alg_3Sys_s uvw = {
+        .a = uAlphaBeta->a,
+        .b = -0.5f * uAlphaBeta->a + sqrt3 / 2.f * uAlphaBeta->b,
+        .c = -0.5f * uAlphaBeta->a - sqrt3 / 2.f * uAlphaBeta->b,
+    };
+
+    float u0 = - 0.5f * (Alg_Max3(&uvw) + Alg_Min3(&uvw));
+    duty->a = 0.5f + 0.5f * (uvw.a + u0);
+    duty->b = 0.5f + 0.5f * (uvw.b + u0);
+    duty->c = 0.5f + 0.5f * (uvw.c + u0);
+
+    // Convert normalized phase voltage (-1..1) to centered PWM duty (0..1).
+    if (duty->a > 1.f) duty->a = 1.f;
+    if (duty->a < 0.f) duty->a = 0.f;
+    if (duty->b > 1.f) duty->b = 1.f;
+    if (duty->b < 0.f) duty->b = 0.f;
+    if (duty->c > 1.f) duty->c = 1.f;
+    if (duty->c < 0.f) duty->c = 0.f;
+
+    switchTim->a = 0.5f * (1 - duty->a);
+    switchTim->b = 0.5f * (1 - duty->b);
+    switchTim->c = 0.5f * (1 - duty->c);
 }

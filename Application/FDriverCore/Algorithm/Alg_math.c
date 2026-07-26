@@ -102,17 +102,81 @@ float Alg_FastCos(float angle) {
     return (sig > 0) ? -sin: sin;
 }
 
+// 三元素最大值
+float Alg_Max3(Alg_3Sys_s* input) {
+    if (input->a > input->b) {
+        if (input->a > input->c) return input->a;
+        else return input->c;
+    }else {
+        if (input->b > input->c) return input->b;
+        else return input->c;
+    }
+}
+
+// 三元素最小值
+float Alg_Min3(Alg_3Sys_s* input) {
+    if (input->a < input->b) {
+        if (input->a < input->c) return input->a;
+        else return input->c;
+    }else {
+        if (input->b < input->c) return input->b;
+        else return input->c;
+    }
+}
+
 /**
- * @brief 矢量解析
- * @param amp 幅值
- * @param theta_e 角度(0~1)
+ * @brief 矢量分解
+ * @param vector 输入矢量
  * @param outAlphaBeta 分量
  */
-void Alg_DeComp(float amp, float theta_e ,Alg_2Sys_s* outAlphaBeta) {
+void Alg_DeComp(Alg_vector_s* vector,Alg_2Sys_s* outAlphaBeta) {
     float sin, cos;
-    sin = Alg_FastSin(theta_e);
-    cos = Alg_FastCos(theta_e);
+    sin = Alg_FastSin(vector->arg);
+    cos = Alg_FastCos(vector->arg);
 
-    outAlphaBeta->a = amp * cos;
-    outAlphaBeta->b = amp * sin;
+    outAlphaBeta->a = vector->module * cos;
+    outAlphaBeta->b = vector->module * sin;
+}
+
+/**
+ * @brief Clarke变换
+ * @param input 输入静止三相坐标系
+ * @param outAlphaBeta 输出静止两相坐标系
+ */
+void Alg_Clarke(Alg_3Sys_s* input, Alg_2Sys_s* outAlphaBeta) {
+    outAlphaBeta->a = input->a - 0.5f * input->b - 0.5f * input->c;
+    outAlphaBeta->b = 0.5f * sqrt3 * input->b - 0.5f * sqrt3 *input->c;
+}
+
+/**
+ * @brief Park变换
+ * @param theta_e 0~1 maps to 0~360 electrical degrees
+ * @param AlphaBeta 输入静止两相坐标系
+ * @param outDq 输出旋转两相坐标系
+ */
+void Alg_Park(float theta_e, Alg_2Sys_s* AlphaBeta, Alg_2Sys_s* outDq) {
+    outDq->a = Alg_FastCos(theta_e) * AlphaBeta->a + Alg_FastSin(theta_e) * AlphaBeta->b;
+    outDq->b = - Alg_FastSin(theta_e) * AlphaBeta->a + Alg_FastCos(theta_e) * AlphaBeta->b;
+}
+
+
+/**
+ * @brief InvClarke变换
+ * @param inAlphaBeta 输出静止两相坐标系
+ * @param out 输出静止三相坐标系
+ */
+void Alg_InvClarke(Alg_2Sys_s* inAlphaBeta, Alg_3Sys_s* out) {
+    out->a = inAlphaBeta->a;
+    out->b = -0.5f * inAlphaBeta->a + 0.5f * sqrt3 * inAlphaBeta->b;
+    out->c = -0.5f * inAlphaBeta->a - 0.5f * sqrt3 * inAlphaBeta->b;
+}
+/**
+ * @brief InvPark变换
+ * @param theta_e 0~1 maps to 0~360 electrical degrees
+ * @param inDq 输入旋转两相坐标系
+ * @param outAlphaBeta 输出静止两相坐标系
+ */
+void Alg_InvPark(float theta_e, Alg_2Sys_s* inDq, Alg_2Sys_s* outAlphaBeta) {
+    outAlphaBeta->a = Alg_FastCos(theta_e) * inDq->a - Alg_FastSin(theta_e) * inDq->b;
+    outAlphaBeta->b = Alg_FastSin(theta_e) * inDq->a + Alg_FastCos(theta_e) * inDq->b;
 }

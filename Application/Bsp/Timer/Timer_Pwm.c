@@ -29,3 +29,9 @@ void Timer_PwmSetDuty(Alg_3Sys_s* swTime) {
     TIM1->CCR2 = (uint32_t)(swTime->b * (PWM_PERIOD_CYCLEES));
     TIM1->CCR3 = (uint32_t)(swTime->c * (PWM_PERIOD_CYCLEES));
 }
+
+void Timer_PwmDisableOutput() {
+    TIM1->CCR1 = (uint32_t)(0.5f* (PWM_PERIOD_CYCLEES));
+    TIM1->CCR2 = (uint32_t)(0.5f* (PWM_PERIOD_CYCLEES));
+    TIM1->CCR3 = (uint32_t)(0.5f* (PWM_PERIOD_CYCLEES));
+}
