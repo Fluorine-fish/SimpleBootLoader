@@ -10,8 +10,9 @@
 #define APPLICATION_FDRIVER_CONFIG_H
 
 /* MotorData */
-#define MOTOR_LS 0.61f
-#define MOTOR_RS 0.000405f
+#define MOTOR_RS 0.61f
+#define MOTOR_LS 0.000405f
+#define MOTOR_TS 0.00005f
 #define MOTOR_POLE_PAIRS 14
 
 /* BoardData */
@@ -20,7 +21,17 @@
 #define CURRENT_ADC_GAIN 9
 #define CURRENT_MAX 36.67f
 #define VDC_ADC_GAIN
+#define VDC_MAX 36
+#define PWM_FREQ 20000.f
 
 /* ControlData */
+#define CONTROLMODE FDRIVER_IF
+/* OpenLoop */
+#define OMEGA_E 250
+#define V_MODULE 0.15
+
+/* CurrentController */
+#define CURRENT_CUT_OFF_FREQ 900.f
+#define CURRENT_TS (1/PWM_FREQ)
 
 #endif //APPLICATION_FDRIVER_CONFIG_H

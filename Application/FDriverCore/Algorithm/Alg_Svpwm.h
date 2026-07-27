@@ -11,7 +11,7 @@
 
 #include "Algorithm.h"
 
-void Alg_SvpwmWithSector(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys_s* duty);
-void Alg_SvpwmZeroInject(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys_s* duty);
+void Alg_SvpwmWithSector(float Vdc, Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys_s* duty);
+void Alg_SvpwmZeroInject(float Vdc, Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys_s* duty);
 
 #endif //APPLICATION_ALG_SVPWM_H

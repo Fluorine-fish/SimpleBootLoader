@@ -26,9 +26,9 @@ void Adc_Init() {
 }
 
 void Adc_GetPhaseCurrent(Alg_3Sys_s* phaseCurrent) {
-    phaseCurrent->a = - (((float)hadc1.Instance->JDR1 - adc_offset[0]) / 2048.f) / 3.3f * 9 / 0.005f;
-    phaseCurrent->b = - (((float)hadc2.Instance->JDR1 - adc_offset[1]) / 2048.f) / 3.3f * 9 / 0.005f;
-    phaseCurrent->c = - (((float)hadc1.Instance->JDR3 - adc_offset[2]) / 2048.f) / 3.3f * 9 / 0.005f;
+    phaseCurrent->a = - (((float)hadc1.Instance->JDR1 - adc_offset[0]) / 4096.f) * 3.3f / 9 / 0.005f;
+    phaseCurrent->b = - (((float)hadc2.Instance->JDR1 - adc_offset[1]) / 4096.f) * 3.3f / 9 / 0.005f;
+    phaseCurrent->c = - (((float)hadc1.Instance->JDR3 - adc_offset[2]) / 4096.f) * 3.3f / 9 / 0.005f;
 }
 
 void Adc_GetVdc(float *vdcRaw) {

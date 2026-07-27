@@ -39,16 +39,17 @@ const float CosTable[] = {
 
 /**
  * @brief 快速Sin计算
- * @param angle 0~1 maps to 0~360 electrical degrees
+ * @param angle 0～2pi
  * @return value
  */
 float Alg_FastSin(float angle) {
-    while (angle < 0.f || angle > 1.f) {
-        if (angle > 1.f) angle -= 1.f;
-        if (angle < 0.f) angle += 1.f;
+    while (angle < 0.f || angle > 2 * PI) {
+        if (angle > 2 * PI) angle -= 2 * PI;
+        if (angle < 0.f) angle += 2 * PI;
     }
 
-    float fangle = angle;
+
+    float fangle = angle / (2 * PI);
     int sig = 0;
     float tmpAngle = 0;
     if (fangle >= 0.5f) {
@@ -68,16 +69,16 @@ float Alg_FastSin(float angle) {
 
 /**
  * @brief 快速Cos计算
- * @param angle 0~1 maps to 0~360 electrical degrees
+ * @param angle 0~2pi
  * @return value
  */
 float Alg_FastCos(float angle) {
-    while (angle < 0.f || angle > 1.f) {
-        if (angle > 1.f) angle -= 1.f;
-        if (angle < 0.f) angle += 1.f;
+    while (angle < 0.f || angle > 2 * PI) {
+        if (angle > 2 * PI) angle -= 2 * PI;
+        if (angle < 0.f) angle += 2 * PI;
     }
 
-    float fangle = angle;
+    float fangle = fangle = angle / (2 * PI);
     int sig = 0;
     float tmpAngle = 0;
 
@@ -144,8 +145,8 @@ void Alg_DeComp(Alg_vector_s* vector,Alg_2Sys_s* outAlphaBeta) {
  * @param outAlphaBeta 输出静止两相坐标系
  */
 void Alg_Clarke(Alg_3Sys_s* input, Alg_2Sys_s* outAlphaBeta) {
-    outAlphaBeta->a = input->a - 0.5f * input->b - 0.5f * input->c;
-    outAlphaBeta->b = 0.5f * sqrt3 * input->b - 0.5f * sqrt3 *input->c;
+    outAlphaBeta->a = (2.f / 3.f) * (input->a - 0.5f * input->b - 0.5f * input->c);
+    outAlphaBeta->b = (2.f / 3.f) * (0.5f * sqrt3 * input->b - 0.5f * sqrt3 *input->c);
 }
 
 /**

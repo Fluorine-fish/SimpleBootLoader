@@ -75,6 +75,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ./FDriverCore/Runtime
         ./FDriverCore/Controller/Ifcontrol
         ./FDriverCore/Controller/Vfcontrol
+        ./FDriverCore/Controller/CurrentControl
         ./FDriverCore/Algorithm
 )
 

@@ -13,6 +13,7 @@
 #include "Timer_Pwm.h"
 
 void VfControl(Controller_VfControl_s* vfController,
+               float Vdc,
                float target_voltage_module,
                float omega_e,
                uint16_t update_frequency){
@@ -23,9 +24,15 @@ void VfControl(Controller_VfControl_s* vfController,
     vfController->voltageVector.module = target_voltage_module;
     vfController->omega_e = omega_e;
 
-    *theta_e = (*theta_e < 0.0f) ? 1.f : *theta_e -  (1.f / update_frequency) * (vfController->omega_e / (2 * PI));
+    if (omega_e > 0) {
+        *theta_e = *theta_e - (1.f / update_frequency) * (vfController->omega_e);
+        if (*theta_e < 0.f) *theta_e += 2 * PI;
+    }else {
+        *theta_e = *theta_e + (1.f / update_frequency) * ( - vfController->omega_e);
+        if (*theta_e > 2 * PI) *theta_e -= 2 * PI;
+    }
 
     Alg_DeComp(&vfController->voltageVector, &tmp_uAlphaBeta);
-    Alg_SvpwmZeroInject(&tmp_uAlphaBeta, &tmp_switchTim, &duty);
+    Alg_SvpwmZeroInject(Vdc, &tmp_uAlphaBeta, &tmp_switchTim, &duty);
     Timer_PwmSetDuty(&tmp_switchTim);
 }

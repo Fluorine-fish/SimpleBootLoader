@@ -11,7 +11,14 @@
 
 #include "stdint.h"
 #include "Algorithm.h"
+#include "Vfcontrol.h"
+#include "IfControl.h"
 #include "Runtime_StateMachine.h"
+
+typedef enum {
+    FDRIVER_VF,
+    FDRIVER_IF,
+}FDriver_Mode_e;
 
 typedef struct {
     AppEvent event;
@@ -42,10 +49,17 @@ typedef struct {
 }FDriver_Feedback_s;
 
 typedef struct {
+    Controller_VfControl_s vfController;
+    Controller_IfControl_s ifController;
+}FDriver_Controller_s;
+
+typedef struct {
+    FDriver_Mode_e mode;
     FDriver_State_s state_machine;
     FDriver_MotorParams_s motor_params;
     FDriver_Foc_s foc;
     FDriver_Feedback_s fdb;
+    FDriver_Controller_s controllers;
 }FDriver_s;
 
 void FDriver_Init(FDriver_s *fdriver);

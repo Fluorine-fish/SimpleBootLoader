@@ -9,14 +9,16 @@
 #include "Alg_Svpwm.h"
 #include "Algorithm.h"
 #include "Alg_math.h"
+#include "FDriver_config.h"
 
 /**
  * @brief 带扇区判断的SVPWM
- * @param uAlphaBeta 母线电压标幺化的Ualpha，Ubeta(0~1)
+ * @param Vdc 母线电压
+ * @param uAlphaBeta Ualpha，Ubeta
  * @param switchTim 三相开关时间
  * @param duty 三相pwm实际占空比(0~1)
  */
-void Alg_SvpwmWithSector(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys_s* duty) {
+void Alg_SvpwmWithSector(float Vdc, Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys_s* duty) {
     float vRef1 = uAlphaBeta->b;
     float vRef2 = sqrt3 / 2.f * uAlphaBeta->a - 0.5f * uAlphaBeta->b;
     float vRef3 = - sqrt3 / 2.f * uAlphaBeta->a - 0.5f * uAlphaBeta->b;
@@ -26,9 +28,10 @@ void Alg_SvpwmWithSector(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys
     uint8_t c = (vRef3 > 0) ? 1 : 0;
 
     uint8_t N = 4 * c + 2 * b + a;
-    float X = uAlphaBeta -> b;
-    float Y = 0.5f * (sqrt3 * uAlphaBeta->a + uAlphaBeta->b);
-    float Z = 0.5f * (- sqrt3 * uAlphaBeta->a + uAlphaBeta->b);
+    // 计算归一化时间的中间变量
+    float X = sqrt3 * uAlphaBeta->b / Vdc;
+    float Y = sqrt3 * (sqrt3 * uAlphaBeta->a + uAlphaBeta->b) / (2.f * Vdc);
+    float Z = sqrt3 * (- sqrt3 * uAlphaBeta->a + uAlphaBeta->b) / (2.f * Vdc);
 
     float T4 = 0.f, T6 = 0.f;
     switch (N) {
@@ -64,6 +67,12 @@ void Alg_SvpwmWithSector(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys
             duty->b = 1.f - 2.f * switchTim->b;
             duty->c = 1.f - 2.f * switchTim->c;
             return;
+    }
+
+    if (T4 + T6 > 1.f) {
+        float sum = T4 + T6;
+        T4 /= sum;
+        T6 /= sum;
     }
 
     float ta = (1.f - T4 - T6) / 4.f;
@@ -136,7 +145,7 @@ void Alg_SvpwmWithSector(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys
     }
 }
 
-void Alg_SvpwmZeroInject(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys_s* duty) {
+void Alg_SvpwmZeroInject(float Vdc, Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys_s* duty) {
     Alg_3Sys_s uvw = {
         .a = uAlphaBeta->a,
         .b = -0.5f * uAlphaBeta->a + sqrt3 / 2.f * uAlphaBeta->b,
@@ -144,9 +153,9 @@ void Alg_SvpwmZeroInject(Alg_2Sys_s* uAlphaBeta, Alg_3Sys_s* switchTim, Alg_3Sys
     };
 
     float u0 = - 0.5f * (Alg_Max3(&uvw) + Alg_Min3(&uvw));
-    duty->a = 0.5f + 0.5f * (uvw.a + u0);
-    duty->b = 0.5f + 0.5f * (uvw.b + u0);
-    duty->c = 0.5f + 0.5f * (uvw.c + u0);
+    duty->a = 0.5f + (uvw.a + u0) / Vdc;
+    duty->b = 0.5f + (uvw.b + u0) / Vdc;
+    duty->c = 0.5f + (uvw.c + u0) / Vdc;
 
     // Convert normalized phase voltage (-1..1) to centered PWM duty (0..1).
     if (duty->a > 1.f) duty->a = 1.f;

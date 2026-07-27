@@ -28,6 +28,7 @@ void Sampling_Vdc(float vdcRaw, float* vdc) {
 }
 
 void Sampling_encoder(uint16_t encoderRaw, float* theta_e, float* theta_m, float* velocity_m) {
-    *theta_e = (uint16_t)(encoderRaw * MOTOR_POLE_PAIRS) / 65536.0f;
-    *theta_m = encoderRaw / 65536.0f;
+    *theta_e = (uint16_t)(encoderRaw * MOTOR_POLE_PAIRS) / 65536.0f * 2 * PI;
+    *theta_m = encoderRaw / 65536.0f * 2 * PI;
+
 }

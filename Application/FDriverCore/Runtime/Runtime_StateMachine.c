@@ -12,10 +12,9 @@
 #include "Vfcontrol.h"
 
 float openloop_theta_e = 0.f;
-float omega_e = 300.f;
+float omega_e = 100.f;
+float iModule = 0.6f;
 float vModule = 0.15f;
-
-Controller_VfControl_s vfController = {};
 
 extern FDriver_s FDriver;
 extern uint16_t adc_offset[3];
@@ -101,7 +100,15 @@ void StateRun() {
     FDriver.state_machine.event = APP_EVENT_RUN;
 
     FDriver_GetFeedback(&FDriver);
-    VfControl(&vfController, vModule, omega_e, 20000);
+
+    switch (FDriver.mode) {
+        case FDRIVER_VF:
+            VfControl(&FDriver.controllers.vfController, FDriver.foc.vdc,vModule, omega_e, 20000);
+            break;
+        case FDRIVER_IF:
+        default:
+            IfControl(&FDriver.controllers.ifController, FDriver.foc.iDq, FDriver.foc.vdc, iModule, omega_e, 20000);
+    }
 }
 
 void StateFault() {

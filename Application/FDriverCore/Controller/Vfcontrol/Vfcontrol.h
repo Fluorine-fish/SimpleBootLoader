@@ -17,6 +17,7 @@ typedef struct {
 }Controller_VfControl_s;
 
 void VfControl(Controller_VfControl_s* vfController,
+               float Vdc,
                float target_voltage_module,
                float omega_e,
                uint16_t update_frequency);
