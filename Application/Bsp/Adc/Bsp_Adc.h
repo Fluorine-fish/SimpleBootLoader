@@ -13,6 +13,6 @@
 
 void Adc_Init();
 void Adc_GetPhaseCurrent(Alg_3Sys_s* phaseCurrent);
-void Adc_GetVdc(float *vdcRaw);
+void Adc_GetVdc(float *vdc);
 
 #endif //APPLICATION_ADC_H

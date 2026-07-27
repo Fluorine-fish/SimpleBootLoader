@@ -47,8 +47,6 @@ static void FDriver_ControllerInit(FDriver_s* fdriver) {
     IfController_Init(&fdriver->controllers.ifController, fdriver->foc.vdc / sqrt3);
 }
 
-static void 
-
 void FDriver_Init(FDriver_s *fdriver) {
     // Mode
     fdriver->mode = CONTROLMODE,
@@ -63,6 +61,16 @@ void FDriver_Init(FDriver_s *fdriver) {
     // Foc
     fdriver->foc.vdc = 24.f;
 
+    // Fdb
+    fdriver->fdb.encoder_offset = 0;
+    fdriver->fdb.adc_current_raw.a = 0.f;
+    fdriver->fdb.adc_current_raw.b = 0.f;
+    fdriver->fdb.adc_current_raw.c = 0.f;
+    fdriver->fdb.adc_curren_offset.a = 0.f;
+    fdriver->fdb.adc_curren_offset.b = 0.f;
+    fdriver->fdb.adc_curren_offset.c = 0.f;
+    fdriver->fdb.Vdc = 0.f;
+
     // Controller Init
     FDriver_ControllerInit(fdriver);
 }
@@ -71,12 +79,13 @@ void FDriver_Init(FDriver_s *fdriver) {
 void FDriver_GetFeedback(FDriver_s *fdriver) {
     // Encoder
     Encoder_GetRaw(&fdriver->fdb.encoder_raw);
-    Sampling_encoder(fdriver->fdb.encoder_raw,
+    Sampling_encoder(fdriver->fdb.encoder_raw - fdriver->fdb.encoder_offset,
         &fdriver->foc.theta_e,
         &fdriver->foc.theta_m,
         &fdriver->foc.velocity_m);
 
     // CurrentSampling
     Adc_GetPhaseCurrent(&FDriver.foc.phase_current);
+    Adc_GetVdc(&FDriver.fdb.Vdc);
     FDriver_CurrentRestruct(&FDriver);
 }

@@ -6,8 +6,12 @@
 *   @version 1.0
 *   @note
 */
+#include "Bsp_Adc.h"
 #include "adc.h"
+#include "Algorithm.h"
+#include "Alg_Svpwm.h"
 #include "FDriver.h"
+#include "FDriver_config.h"
 #include "Timer_Pwm.h"
 #include "Vfcontrol.h"
 
@@ -51,8 +55,12 @@ void StateInit() {
 }
 
 void StateReady() {
+    static float VBus = 0.f;
     FDriver.state_machine.state = APP_STATE_READY;
-    FDriver.state_machine.event = APP_EVENT_APP_ON;
+
+    // VBus检测
+    Adc_GetVdc(&VBus);
+    if (VBus > VDC_MIN && VBus < VDC_MAX) FDriver.state_machine.event = APP_EVENT_APP_ON;
 }
 
 void StateCalib() {
@@ -62,7 +70,6 @@ void StateCalib() {
 
     FDriver.state_machine.state = APP_STATE_CALIB;
     FDriver.state_machine.event = APP_EVENT_CALIB;
-
 
     if (cnt < 500) {
         tmp_offset[0] += hadc1.Instance->JDR1;
@@ -84,11 +91,50 @@ void StateCalib() {
 
 void StateAlign() {
     uint8_t fnState = 0;
+    static uint16_t cnt = 0;
+    static uint8_t align_flag = 0;
+    Alg_2Sys_s target_udq = {};
+    Alg_2Sys_s target_uAlphabeta = {};
+    Alg_3Sys_s tmp_switchTim;
+    Alg_3Sys_s duty;
 
     FDriver.state_machine.state = APP_STATE_ALIGN;
     FDriver.state_machine.event = APP_EVENT_ALIGN;
 
-    fnState = 1;
+    FDriver_GetFeedback(&FDriver);
+
+    if (cnt < ALIGN_TIME) {
+        if (align_flag == 0) {
+            /* d轴体电压对齐 */
+            target_udq.a = ALIGN_VOLTAGE;
+            target_udq.b = 0;
+        }else {
+            /* q轴体电压对齐 */
+            target_udq.a = 0;
+            target_udq.b = ALIGN_VOLTAGE;
+        }
+
+        Alg_InvPark(0.0f, &target_udq, &target_uAlphabeta);
+        Alg_SvpwmZeroInject(FDriver.fdb.Vdc, &target_uAlphabeta, &tmp_switchTim, &duty);
+        Timer_PwmSetDuty(&tmp_switchTim);
+
+        cnt++;
+    }else {
+        switch (align_flag) {
+            default: case 0:
+                align_flag = 1;
+                cnt = 0;
+                /* theta_r offset */
+                FDriver.fdb.encoder_offset = FDriver.fdb.encoder_raw;
+                break;
+            case 1:
+                align_flag = 2;
+                break;
+            case 2:
+                // SNS_Init(&tFocDrv.tSns);
+                fnState = 1;
+        }
+    }
 
     if (fnState) {
         FDriver.state_machine.event = APP_EVENT_ALIGN_DONE;
@@ -103,11 +149,11 @@ void StateRun() {
 
     switch (FDriver.mode) {
         case FDRIVER_VF:
-            VfControl(&FDriver.controllers.vfController, FDriver.foc.vdc,vModule, omega_e, 20000);
+            VfControl(&FDriver.controllers.vfController, FDriver.fdb.Vdc,vModule, omega_e, 20000);
             break;
         case FDRIVER_IF:
         default:
-            IfControl(&FDriver.controllers.ifController, FDriver.foc.iDq, FDriver.foc.vdc, iModule, omega_e, 20000);
+            IfControl(&FDriver.controllers.ifController, FDriver.foc.iDq, FDriver.fdb.Vdc, iModule, omega_e, 20000);
     }
 }
 

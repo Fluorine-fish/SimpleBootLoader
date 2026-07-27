@@ -31,6 +31,6 @@ void Adc_GetPhaseCurrent(Alg_3Sys_s* phaseCurrent) {
     phaseCurrent->c = - (((float)hadc1.Instance->JDR3 - adc_offset[2]) / 4096.f) * 3.3f / 9 / 0.005f;
 }
 
-void Adc_GetVdc(float *vdcRaw) {
-    *vdcRaw = (float)hadc1.Instance->JDR2; // v bus voltage
+void Adc_GetVdc(float *vdc) {
+    *vdc = (float)hadc1.Instance->JDR2 / 4096.f * 3.3f * 11.f; // v bus voltage
 }

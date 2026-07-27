@@ -43,9 +43,10 @@ typedef struct {
 
 typedef struct {
     uint16_t encoder_raw; // 编码器原始值
-    uint8_t encoder_rev; // 编码器分辨率
+    uint16_t encoder_offset;
     Alg_3Sys_s adc_current_raw; // ADC原始值
     Alg_3Sys_s adc_curren_offset;
+    float Vdc;
 }FDriver_Feedback_s;
 
 typedef struct {
