@@ -44,7 +44,7 @@ static void FDriver_ControllerInit(FDriver_s* fdriver) {
     fdriver->controllers.vfController.voltageVector.module = V_MODULE;
 
     // IfController
-    IfController_Init(&fdriver->controllers.ifController, fdriver->foc.vdc / sqrt3);
+    IfController_Init(&fdriver->controllers.ifController, fdriver->foc.vdc_set / sqrt3);
 }
 
 void FDriver_Init(FDriver_s *fdriver) {
@@ -59,7 +59,7 @@ void FDriver_Init(FDriver_s *fdriver) {
     // StateMachine 不需要初始化
 
     // Foc
-    fdriver->foc.vdc = 24.f;
+    fdriver->foc.vdc_set = VDC_SET;
 
     // Fdb
     fdriver->fdb.encoder_offset = 0;
@@ -69,7 +69,7 @@ void FDriver_Init(FDriver_s *fdriver) {
     fdriver->fdb.adc_curren_offset.a = 0.f;
     fdriver->fdb.adc_curren_offset.b = 0.f;
     fdriver->fdb.adc_curren_offset.c = 0.f;
-    fdriver->fdb.Vdc = 0.f;
+    Adc_GetVdc(&fdriver->fdb.vdc);
 
     // Controller Init
     FDriver_ControllerInit(fdriver);
@@ -86,6 +86,6 @@ void FDriver_GetFeedback(FDriver_s *fdriver) {
 
     // CurrentSampling
     Adc_GetPhaseCurrent(&FDriver.foc.phase_current);
-    Adc_GetVdc(&FDriver.fdb.Vdc);
+    Adc_GetVdc(&FDriver.fdb.vdc);
     FDriver_CurrentRestruct(&FDriver);
 }

@@ -14,6 +14,7 @@
 /* 定义常量和结构体 */
 #define PI (3.1415926536f)
 #define sqrt3 (1.7320508076f)
+#define sqrt2 (1.4142135624f)
 
 typedef struct {
     float module;

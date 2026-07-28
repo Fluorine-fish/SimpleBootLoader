@@ -10,9 +10,8 @@
 #include "Alg_Svpwm.h"
 #include "Timer_Pwm.h"
 
-void IfController_Init(Controller_IfControl_s* controller, float out_max) {
-    CurrentController_Init(&controller->idController, out_max);
-    CurrentController_Init(&controller->iqController, out_max);
+void IfController_Init(Controller_IfControl_s* controller, float vdc) {
+    CurrentControl_Init(&controller->iControl, vdc);
 
     controller->target_idq.a = 0;
     controller->target_idq.b = 0;
@@ -23,7 +22,7 @@ void IfController_Init(Controller_IfControl_s* controller, float out_max) {
 }
 
 void IfControl(Controller_IfControl_s* ifController,
-               Alg_2Sys_s fdb_idq,
+               Alg_2Sys_s* fdb_idq,
                float Vdc,
                float target_current_module,
                float omega_e,
@@ -46,8 +45,7 @@ void IfControl(Controller_IfControl_s* ifController,
     Alg_DeComp(&ifController->currentVector, &tmp_iAlphaBeta);
     Alg_Park(*theta_e, &tmp_iAlphaBeta, &ifController->target_idq);
 
-    ifController->out_uDq.a = CurrentControl(&ifController->idController, ifController->target_idq.a  - fdb_idq.a);
-    ifController->out_uDq.b = CurrentControl(&ifController->iqController, ifController->target_idq.b  - fdb_idq.b);
+    CurrentControl(&ifController->iControl, &ifController->target_idq, fdb_idq, &ifController->out_uDq, Vdc);
 
     Alg_InvPark(*theta_e, &ifController->out_uDq, &ifController->out_uAlphaBeta);
     Alg_SvpwmZeroInject(Vdc, &ifController->out_uAlphaBeta, &tmp_switchTim, &duty);

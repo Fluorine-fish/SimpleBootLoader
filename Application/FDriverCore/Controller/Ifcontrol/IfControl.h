@@ -13,8 +13,7 @@
 #include "CurrerntControl.h"
 
 typedef struct {
-    CurrentController_s idController;
-    CurrentController_s iqController;
+    CurrentControl_s iControl;
     Alg_vector_s currentVector;
     float omega_e; // 电角速度 rad/s
     Alg_2Sys_s out_uDq;
@@ -22,10 +21,10 @@ typedef struct {
     Alg_2Sys_s target_idq;
 }Controller_IfControl_s;
 
-void IfController_Init(Controller_IfControl_s* controller, float out_max);
+void IfController_Init(Controller_IfControl_s* controller, float vdc);
 
 void IfControl(Controller_IfControl_s* ifController,
-               Alg_2Sys_s fdb_idq,
+               Alg_2Sys_s* fdb_idq,
                float Vdc,
                float target_current_module,
                float omega_e,

@@ -35,7 +35,7 @@ typedef struct {
     float theta_e;// 0~1
     float theta_m;// 0~1
     float velocity_m;// rad/s
-    float vdc;  // 母线电压
+    float vdc_set;  // 母线电压
     Alg_3Sys_s phase_current;
     Alg_2Sys_s iAlphaBeta;
     Alg_2Sys_s iDq;
@@ -46,7 +46,7 @@ typedef struct {
     uint16_t encoder_offset;
     Alg_3Sys_s adc_current_raw; // ADC原始值
     Alg_3Sys_s adc_curren_offset;
-    float Vdc;
+    float vdc;
 }FDriver_Feedback_s;
 
 typedef struct {

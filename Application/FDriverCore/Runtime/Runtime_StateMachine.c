@@ -16,7 +16,7 @@
 #include "Vfcontrol.h"
 
 float openloop_theta_e = 0.f;
-float omega_e = 100.f;
+float omega_e = 400.f;
 float iModule = 0.6f;
 float vModule = 0.15f;
 
@@ -47,7 +47,8 @@ void StateInit() {
     Timer_PwmDisableOutput();
     FDriver_Init(&FDriver);
 
-    fnState = 1;
+    // VBus检测
+    if (FDriver.fdb.vdc > VDC_MIN && FDriver.fdb.vdc < VDC_MAX) fnState = 1;
 
     if (fnState) {
         FDriver.state_machine.event = APP_EVENT_INIT_DONE;
@@ -55,12 +56,8 @@ void StateInit() {
 }
 
 void StateReady() {
-    static float VBus = 0.f;
     FDriver.state_machine.state = APP_STATE_READY;
-
-    // VBus检测
-    Adc_GetVdc(&VBus);
-    if (VBus > VDC_MIN && VBus < VDC_MAX) FDriver.state_machine.event = APP_EVENT_APP_ON;
+    FDriver.state_machine.event = APP_EVENT_APP_ON;
 }
 
 void StateCalib() {
@@ -115,7 +112,7 @@ void StateAlign() {
         }
 
         Alg_InvPark(0.0f, &target_udq, &target_uAlphabeta);
-        Alg_SvpwmZeroInject(FDriver.fdb.Vdc, &target_uAlphabeta, &tmp_switchTim, &duty);
+        Alg_SvpwmZeroInject(FDriver.fdb.vdc, &target_uAlphabeta, &tmp_switchTim, &duty);
         Timer_PwmSetDuty(&tmp_switchTim);
 
         cnt++;
@@ -149,11 +146,11 @@ void StateRun() {
 
     switch (FDriver.mode) {
         case FDRIVER_VF:
-            VfControl(&FDriver.controllers.vfController, FDriver.fdb.Vdc,vModule, omega_e, 20000);
+            VfControl(&FDriver.controllers.vfController, FDriver.fdb.vdc,vModule, omega_e, 20000);
             break;
         case FDRIVER_IF:
         default:
-            IfControl(&FDriver.controllers.ifController, FDriver.foc.iDq, FDriver.fdb.Vdc, iModule, omega_e, 20000);
+            IfControl(&FDriver.controllers.ifController, &FDriver.foc.iDq, FDriver.fdb.vdc, iModule, omega_e, 20000);
     }
 }
 
