@@ -44,7 +44,10 @@ static void FDriver_ControllerInit(FDriver_s* fdriver) {
     fdriver->controllers.vfController.voltageVector.module = V_MODULE;
 
     // IfController
-    IfController_Init(&fdriver->controllers.ifController, fdriver->foc.vdc_set / sqrt3);
+    IfController_Init(&fdriver->controllers.ifController, fdriver->foc.vdc_set);
+
+    // TorqueController
+    TorqueControl_Init(&fdriver->controllers.torqueController, fdriver->foc.vdc_set);
 }
 
 void FDriver_Init(FDriver_s *fdriver) {
@@ -75,6 +78,17 @@ void FDriver_Init(FDriver_s *fdriver) {
     FDriver_ControllerInit(fdriver);
 }
 
+void FDriver_ObserverInit(FDriver_s* fdriver) {
+    Observer_PllInit(&fdriver->observer.pll_e,MOTOR_MAX_OMEGA_E);
+    Observer_PllInit(&fdriver->observer.pll_m,MOTOR_MAX_OMEGA_M);
+}
+
+void FDriver_ObserverUpdate(FDriver_s* fdriver) {
+    Observer_PllUpdate(&fdriver->observer.pll_e, fdriver->foc.theta_e);
+    Observer_PllUpdate(&fdriver->observer.pll_m, fdriver->foc.theta_m);
+    fdriver->foc.omega_e = fdriver->observer.pll_e.omega_hat;
+    fdriver->foc.omega_m = fdriver->observer.pll_m.omega_hat;
+}
 
 void FDriver_GetFeedback(FDriver_s *fdriver) {
     // Encoder
@@ -82,7 +96,7 @@ void FDriver_GetFeedback(FDriver_s *fdriver) {
     Sampling_encoder(fdriver->fdb.encoder_raw - fdriver->fdb.encoder_offset,
         &fdriver->foc.theta_e,
         &fdriver->foc.theta_m,
-        &fdriver->foc.velocity_m);
+        &fdriver->foc.omega_m);
 
     // CurrentSampling
     Adc_GetPhaseCurrent(&FDriver.foc.phase_current);

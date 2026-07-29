@@ -13,8 +13,7 @@
 static uint16_t lastEncoderRaw = 0;
 
 void Sampling_encoder(uint16_t encoderRaw, float* theta_e, float* theta_m, float* velocity_m) {
-    // 编码器反向
+    // 编码器反向 uin16_t负数溢出特性
     *theta_e = (uint16_t)(65536 - encoderRaw * MOTOR_POLE_PAIRS) / 65536.0f * 2 * PI;
-    *theta_m = encoderRaw / 65536.0f * 2 * PI;
-
+    *theta_m = (uint16_t)(65536 - encoderRaw) / 65536.0f * 2 * PI;
 }

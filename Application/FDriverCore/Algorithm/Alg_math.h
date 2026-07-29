@@ -15,6 +15,8 @@ float Alg_FastSin(float angle);
 float Alg_FastCos(float angle);
 float Alg_Max3(Alg_3Sys_s* input);
 float Alg_Min3(Alg_3Sys_s* input);
+float Alg_Clamp(float input, float min, float max);
+
 
 void Alg_DeComp(Alg_vector_s* vector,Alg_2Sys_s* outAlphaBeta);
 void Alg_Clarke(Alg_3Sys_s* input, Alg_2Sys_s* outAlphaBeta);

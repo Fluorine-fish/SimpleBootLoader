@@ -15,10 +15,20 @@
 #include "Timer_Pwm.h"
 #include "Vfcontrol.h"
 
+/**
+ * TODO: Flash校准需要初始化Observer
+ */
+
+// #define ADC_NOISE_TEST
+
 float openloop_theta_e = 0.f;
-float omega_e = 400.f;
+float omega_e = 100.f;
+
 float iModule = 0.6f;
 float vModule = 0.15f;
+float target_torque = 0.06f;
+
+uint16_t adc_raw[3] = {};
 
 extern FDriver_s FDriver;
 extern uint16_t adc_offset[3];
@@ -128,7 +138,7 @@ void StateAlign() {
                 align_flag = 2;
                 break;
             case 2:
-                // SNS_Init(&tFocDrv.tSns);
+                FDriver_ObserverInit(&FDriver);
                 fnState = 1;
         }
     }
@@ -143,14 +153,26 @@ void StateRun() {
     FDriver.state_machine.event = APP_EVENT_RUN;
 
     FDriver_GetFeedback(&FDriver);
+    FDriver_ObserverUpdate(&FDriver);
 
     switch (FDriver.mode) {
         case FDRIVER_VF:
             VfControl(&FDriver.controllers.vfController, FDriver.fdb.vdc,vModule, omega_e, 20000);
             break;
         case FDRIVER_IF:
-        default:
             IfControl(&FDriver.controllers.ifController, &FDriver.foc.iDq, FDriver.fdb.vdc, iModule, omega_e, 20000);
+            break;
+        case FDRIVER_TORQUE:
+        default:
+#ifdef ADC_NOISE_TEST
+            Timer_PwmDisableOutput();
+            adc_raw[0] = hadc1.Instance->JDR1;
+            adc_raw[1] = hadc2.Instance->JDR1;
+            adc_raw[2] = hadc1.Instance->JDR3;
+#else
+            TorqueControl(&FDriver.controllers.torqueController, &FDriver.foc.iDq, FDriver.fdb.vdc, FDriver.foc.theta_e, FDriver.foc.omega_e, target_torque);
+#endif
+            break;
     }
 }
 

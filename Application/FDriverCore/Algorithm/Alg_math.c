@@ -181,3 +181,9 @@ void Alg_InvPark(float theta_e, Alg_2Sys_s* inDq, Alg_2Sys_s* outAlphaBeta) {
     outAlphaBeta->a = Alg_FastCos(theta_e) * inDq->a - Alg_FastSin(theta_e) * inDq->b;
     outAlphaBeta->b = Alg_FastSin(theta_e) * inDq->a + Alg_FastCos(theta_e) * inDq->b;
 }
+
+float Alg_Clamp(float input, float min, float max) {
+    if (input < min) return min;
+    if (input > max) return max;
+    return input;
+}

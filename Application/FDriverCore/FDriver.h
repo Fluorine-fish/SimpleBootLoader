@@ -13,11 +13,14 @@
 #include "Algorithm.h"
 #include "Vfcontrol.h"
 #include "IfControl.h"
+#include "TorqueContorl.h"
+#include "VelocityObserver.h"
 #include "Runtime_StateMachine.h"
 
 typedef enum {
-    FDRIVER_VF,
+    FDRIVER_VF = 0,
     FDRIVER_IF,
+    FDRIVER_TORQUE,
 }FDriver_Mode_e;
 
 typedef struct {
@@ -32,9 +35,10 @@ typedef struct {
 }FDriver_MotorParams_s;
 
 typedef struct {
-    float theta_e;// 0~1
-    float theta_m;// 0~1
-    float velocity_m;// rad/s
+    float theta_e;// 0~2pi
+    float theta_m;// 0~2pi
+    float omega_e;
+    float omega_m;// rad/s
     float vdc_set;  // 母线电压
     Alg_3Sys_s phase_current;
     Alg_2Sys_s iAlphaBeta;
@@ -50,8 +54,14 @@ typedef struct {
 }FDriver_Feedback_s;
 
 typedef struct {
+    Observer_Pll_s pll_e;
+    Observer_Pll_s pll_m;
+}FDriver_Observer_s;
+
+typedef struct {
     Controller_VfControl_s vfController;
     Controller_IfControl_s ifController;
+    TorqueController_s torqueController;
 }FDriver_Controller_s;
 
 typedef struct {
@@ -59,11 +69,14 @@ typedef struct {
     FDriver_State_s state_machine;
     FDriver_MotorParams_s motor_params;
     FDriver_Foc_s foc;
+    FDriver_Observer_s observer;
     FDriver_Feedback_s fdb;
     FDriver_Controller_s controllers;
 }FDriver_s;
 
 void FDriver_Init(FDriver_s *fdriver);
+void FDriver_ObserverInit(FDriver_s* fdriver);
+void FDriver_ObserverUpdate(FDriver_s* fdriver);
 void FDriver_GetFeedback(FDriver_s *fdriver);
 
 #endif //APPLICATION_FDRIVER_H
